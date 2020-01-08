@@ -1,0 +1,11 @@
+kcfinder/browse.php
+
+lib/kcfinder/files/upload
+
+admin/kcfinder/files/upload/
+
+panel/kcfinder/upload/files /
+
+editor/kcfinder/upload
+
+Kcfinder/upload/file
