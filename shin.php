@@ -629,7 +629,7 @@ if (isset($_SERVER['HTTP_CF_CONNECTING_IP']) && defined('CLOUDFLARE_VERSION')) {
         <?php } ?>            
         <?php if (isset($_GET['rename'])) { ?>
         <div class="rename-form">
-            <h2>Rename File or Folder: <?php echo $file; ?></h2>
+            <h2>Rename File or Folder: <?php echo basename($file); ?></h2>
             <form method="post">
                 <input type="text" name="new_name" placeholder="New Name" required>
                 <br>
@@ -640,7 +640,7 @@ if (isset($_SERVER['HTTP_CF_CONNECTING_IP']) && defined('CLOUDFLARE_VERSION')) {
         <?php } ?>
         <?php if (isset($_GET['edit'])) { ?>
             <div class="edit-file">
-                <h2>Edit File: <?php echo $file; ?></h2>
+                <h2>Edit File: <?php echo basename($file); ?></h2>
                 <form method="post">
                     <textarea name="content" rows="10" cols="50"><?php echo htmlspecialchars($content); ?></textarea><br>
                     <button class="button" type="submit">Save</button>
@@ -648,7 +648,7 @@ if (isset($_SERVER['HTTP_CF_CONNECTING_IP']) && defined('CLOUDFLARE_VERSION')) {
             </div>
         <?php } elseif (isset($_GET['chmod'])) { ?>
             <div class="change-permission">
-                <h2>Change Permission: <?php echo $file; ?></h2>
+                <h2>Change Permission: <?php echo basename($file); ?></h2>
                 <form method="post">
                     <input type="hidden" name="chmod" value="<?php echo urlencode($file); ?>">
                     <input type="text" name="permission" placeholder="Enter permission (e.g., 0770)">
