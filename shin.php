@@ -266,14 +266,13 @@ function showFileTable($path)
                     <td><?php echo $fileDetail['type']; ?></td>
                     <td><?php echo $fileDetail['size']; ?></td>
                     <td>
-                        <?php if ($fileDetail['type'] === 'File') { ?>
-                            <a href="?chmod=<?php echo urlencode($path . '/' . $fileDetail['name']); ?>"><?php echo $fileDetail['permission']; ?></a>
-                        <?php } else {
-                            echo $fileDetail['permission'];
-                        } ?>
-                    </td>
+                        <?php
+                        $permissionColor = is_writable($path . '/' . $fileDetail['name']) ? 'green' : 'red';
+                        ?>
+                        <span style="color: <?php echo $permissionColor; ?>"><?php echo $fileDetail['permission']; ?></span>
+                        </td>
                     <td>
-                        
+                            
                         <?php if ($fileDetail['type'] === 'File') { ?>
                             <div class="dropdown">
                                 <button class="dropbtn">Actions</button>
