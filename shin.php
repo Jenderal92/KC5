@@ -202,10 +202,12 @@ function getLink($path, $name)
 {
     if (is_dir($path)) {
         return '<a href="?dir=' . urlencode($path) . '">' . $name . '</a>';
-    } else {
-        return '<a href="?edit=' . urlencode($path) . '">' . $name . '</a>';
+    } elseif (is_file($path)) {
+        return '<a href="?dir=' . urlencode(dirname($path)) . '&amp;edit=' . urlencode($path) . '">' . $name . '</a>';
+
     }
 }
+
 function getDirectoryArray($path)
 {
     $directories = explode('/', $path);
