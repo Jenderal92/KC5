@@ -474,14 +474,13 @@ if (isset($_GET['delete'])) {
     $file = $_GET['delete'];
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $currentDirectory = getCurrentDirectory();
-        $fileDirectory = dirname($file);
         if (is_file($file)) {
             $responseMessage = deleteFile($file);
-            echo "<script>alert('File dihapus');window.location='?dir=" . urlencode($fileDirectory) . "';</script>";
+            echo "<script>alert('File dihapus');window.location='?dir=" . urlencode($currentDirectory) . "';</script>";
             exit;
         } elseif (is_dir($file)) {
             $responseMessage = deleteFolder($file);
-            echo "<script>alert('Folder dihapus');window.location='?dir=" . urlencode($fileDirectory) . "';</script>";
+            echo "<script>alert('Folder dihapus');window.location='?dir=" . urlencode($currentDirectory) . "';</script>";
             exit;
         } else {
             $errorMessage = 'File or folder does not exist.';
