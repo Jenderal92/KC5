@@ -277,10 +277,10 @@ function showFileTable($path)
                             <div class="dropdown">
                                 <button class="dropbtn">Actions</button>
                                 <div class="dropdown-content">
-                                    <a href="?edit=<?php echo urlencode($path . '/' . $fileDetail['name']); ?>">Edit</a>
-                                    <a href="?rename=<?php echo urlencode($path . '/' . $fileDetail['name']); ?>">Rename</a>
-                                    <a href="?chmod=<?php echo urlencode($path . '/' . $fileDetail['name']); ?>">Chmod</a>
-                                    <a href="?delete=<?php echo urlencode($path . '/' . $fileDetail['name']); ?>">Delete</a>
+                                    <a href="?dir=<?php echo urlencode($path); ?>&edit=<?php echo urlencode($path . '/' . $fileDetail['name']); ?>">Edit</a>
+                                    <a href="?dir=<?php echo urlencode($path); ?>&rename=<?php echo urlencode($fileDetail['name']); ?>">Rename</a>
+                                    <a href="?dir=<?php echo urlencode($path); ?>&chmod=<?php echo urlencode($fileDetail['name']); ?>">Chmod</a>
+                                    <a href="?dir=<?php echo urlencode($path); ?>&delete=<?php echo urlencode($fileDetail['name']); ?>">Delete</a>
                                  </div>
                                </div>
                         <?php } ?>
@@ -288,9 +288,9 @@ function showFileTable($path)
                             <div class="dropdown">
                                 <button class="dropbtn">Actions</button>
                                 <div class="dropdown-content">
-                                    <a href="?rename=<?php echo urlencode($path . '/' . $fileDetail['name']); ?>">Rename</a>
-                                    <a href="?chmod=<?php echo urlencode($path . '/' . $fileDetail['name']); ?>">Chmod</a>
-                                    <a href="?delete=<?php echo urlencode($path . '/' . $fileDetail['name']); ?>">Delete</a>
+                                    <a href="?dir=<?php echo urlencode($path); ?>&rename=<?php echo urlencode($fileDetail['name']); ?>">Rename</a>
+                                    <a href="?dir=<?php echo urlencode($path); ?>&chmod=<?php echo urlencode($fileDetail['name']); ?>">Chmod</a>
+                                    <a href="?dir=<?php echo urlencode($path); ?>&delete=<?php echo urlencode($fileDetail['name']); ?>">Delete</a>
                                 </div>
                              </div>
                         <?php } ?>
