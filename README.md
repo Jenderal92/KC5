@@ -2,6 +2,8 @@
 
 Hahahah
 
+<b>USE AS PER DA'S POLICY</b>
+
 
 shin.php Shin Shell !!! 
 b.php shinbyps
