@@ -15,3 +15,4 @@ b.php shinbyps
 Do not use it on systems you do not own or have explicit permission to test.
 The author is not responsible for any misuse of this code.
 
+More Disclaimer You Can see the disclaimer on the cover of Jenderal92. You can check it [HERE !!!](https://github.com/Jenderal92/)
